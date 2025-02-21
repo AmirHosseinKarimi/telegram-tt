@@ -31,6 +31,7 @@ type OwnProps = {
   tabClassName?: string;
   onSwitchTab: (index: number) => void;
   contextRootElementSelector?: string;
+  isVertical?: boolean;
 };
 
 const TAB_SCROLL_THRESHOLD_PX = 16;
@@ -40,18 +41,20 @@ const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 const TabList: FC<OwnProps> = ({
   tabs, activeTab, onSwitchTab,
   contextRootElementSelector, className, tabClassName,
+  isVertical,
 }) => {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveTab = usePreviousDeprecated(activeTab);
 
-  useHorizontalScroll(containerRef, undefined, true);
+  useHorizontalScroll(containerRef, isVertical, true);
+  useVerticalScroll(containerRef, !isVertical, true);
 
   // Scroll container to place active tab in the center
   useEffect(() => {
     const container = containerRef.current!;
     const { scrollWidth, offsetWidth, scrollLeft } = container;
-    if (scrollWidth <= offsetWidth) {
+    if (scrollWidth <= offsetWidth || isVertical) {
       return;
     }
 
@@ -69,7 +72,7 @@ const TabList: FC<OwnProps> = ({
     }
 
     animateHorizontalScroll(container, newLeft, SCROLL_DURATION);
-  }, [activeTab]);
+  }, [activeTab, isVertical]);
 
   const lang = useOldLang();
 
