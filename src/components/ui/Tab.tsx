@@ -23,6 +23,7 @@ import './Tab.scss';
 type OwnProps = {
   className?: string;
   title: TeactNode;
+  emoticon?: TeactNode;
   isActive?: boolean;
   isBlocked?: boolean;
   badgeCount?: number;
@@ -42,6 +43,7 @@ const classNames = {
 const Tab: FC<OwnProps> = ({
   className,
   title,
+  emoticon,
   isActive,
   isBlocked,
   badgeCount,
@@ -140,7 +142,10 @@ const Tab: FC<OwnProps> = ({
       ref={tabRef}
     >
       <span className="Tab_inner">
-        {typeof title === 'string' ? renderText(title) : title}
+        {emoticon}
+        <div className="title">
+          {typeof title === "string" ? renderText(title) : title}
+        </div>
         {Boolean(badgeCount) && (
           <span className={buildClassName('badge', isBadgeActive && classNames.badgeActive)}>{badgeCount}</span>
         )}

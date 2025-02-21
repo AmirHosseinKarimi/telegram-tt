@@ -86,6 +86,7 @@ const TabList: FC<OwnProps> = ({
         <Tab
           key={tab.id}
           title={tab.title}
+          emoticon={tab.emoticon}
           isActive={i === activeTab}
           isBlocked={tab.isBlocked}
           badgeCount={tab.badgeCount}
