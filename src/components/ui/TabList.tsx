@@ -19,6 +19,7 @@ import useVerticalScroll from '../../hooks/useVerticalScroll';
 export type TabWithProperties = {
   id?: number;
   title: TeactNode;
+  emoticon?: TeactNode;
   badgeCount?: number;
   isBlocked?: boolean;
   isBadgeActive?: boolean;
