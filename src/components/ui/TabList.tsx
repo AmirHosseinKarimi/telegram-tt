@@ -14,6 +14,7 @@ import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
 import Tab from './Tab';
 
 import './TabList.scss';
+import useVerticalScroll from '../../hooks/useVerticalScroll';
 
 export type TabWithProperties = {
   id?: number;
