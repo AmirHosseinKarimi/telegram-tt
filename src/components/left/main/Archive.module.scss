@@ -1,4 +1,6 @@
 .root {
+  position: absolute;
+  width: 100%;
   --background-color: var(--color-background);
 
   :global(.ListItem-button) {
