@@ -1,18 +1,13 @@
+import { getActions, withGlobal } from '../../../global';
 import type { FC } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
 
 import type { GlobalState } from '../../../global/types';
 import type { ISettings } from '../../../types';
 import { LeftColumnContent, SettingsScreens } from '../../../types';
 
-import {
-  APP_NAME,
-  DEBUG,
-  IS_BETA,
-} from '../../../config';
 import {
   selectCanSetPasscode,
   selectCurrentMessageList,
@@ -23,28 +18,23 @@ import {
 import buildClassName from '../../../util/buildClassName';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { formatDateToString } from '../../../util/dates/dateFormat';
-import { IS_APP, IS_ELECTRON, IS_MAC_OS } from '../../../util/windowEnvironment';
+import { IS_APP } from '../../../util/windowEnvironment';
 
 import useAppLayout from '../../../hooks/useAppLayout';
 import useConnectionStatus from '../../../hooks/useConnectionStatus';
 import useElectronDrag from '../../../hooks/useElectronDrag';
-import useFlag from '../../../hooks/useFlag';
 import { useHotkeys } from '../../../hooks/useHotkeys';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
-import { useFullscreenStatus } from '../../../hooks/window/useFullscreen';
-import useLeftHeaderButtonRtlForumTransition from './hooks/useLeftHeaderButtonRtlForumTransition';
 
 import Icon from '../../common/icons/Icon';
 import PeerChip from '../../common/PeerChip';
 import StoryToggler from '../../story/StoryToggler';
 import Button from '../../ui/Button';
-import DropdownMenu from '../../ui/DropdownMenu';
 import SearchInput from '../../ui/SearchInput';
 import ShowTransition from '../../ui/ShowTransition';
 import ConnectionStatusOverlay from '../ConnectionStatusOverlay';
-import LeftSideMenuItems from './LeftSideMenuItems';
 import StatusButton from './StatusButton';
 
 import './LeftMainHeader.scss';
@@ -56,9 +46,6 @@ type OwnProps = {
   isClosingSearch?: boolean;
   shouldSkipTransition?: boolean;
   onSearchQuery: (query: string) => void;
-  onSelectSettings: NoneToVoidFunction;
-  onSelectContacts: NoneToVoidFunction;
-  onSelectArchived: NoneToVoidFunction;
   onReset: NoneToVoidFunction;
 };
 
@@ -89,7 +76,6 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   searchQuery,
   isLoading,
   isCurrentUserPremium,
-  shouldSkipTransition,
   globalSearchChatId,
   searchDate,
   theme,
@@ -102,9 +88,6 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   hasPasscode,
   canSetPasscode,
   onSearchQuery,
-  onSelectSettings,
-  onSelectContacts,
-  onSelectArchived,
   onReset,
 }) => {
   const {
@@ -119,10 +102,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   const lang = useLang();
   const { isMobile, isDesktop } = useAppLayout();
 
-  const [isBotMenuOpen, markBotMenuOpen, unmarkBotMenuOpen] = useFlag();
-
   const areContactsVisible = content === LeftColumnContent.Contacts;
-  const hasMenu = content === LeftColumnContent.ChatList;
 
   const selectedSearchDate = useMemo(() => {
     return searchDate
@@ -156,28 +136,6 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     ...(IS_APP && { 'Mod+L': handleLockScreenHotkey }),
   } : undefined), [canSetPasscode]));
 
-  const MainButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
-    return ({ onTrigger, isOpen }) => (
-      <Button
-        round
-        ripple={hasMenu && !isMobile}
-        size="smaller"
-        color="translucent"
-        className={isOpen ? 'active' : ''}
-        // eslint-disable-next-line react/jsx-no-bind
-        onClick={hasMenu ? onTrigger : () => onReset()}
-        ariaLabel={hasMenu ? oldLang('AccDescrOpenMenu2') : 'Return to chat list'}
-      >
-        <div className={buildClassName(
-          'animated-menu-icon',
-          !hasMenu && 'state-back',
-          shouldSkipTransition && 'no-animation',
-        )}
-        />
-      </Button>
-    );
-  }, [hasMenu, isMobile, oldLang, onReset, shouldSkipTransition]);
-
   const handleSearchFocus = useLastCallback(() => {
     if (!searchQuery) {
       onSearchQuery('');
@@ -203,16 +161,6 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   const searchInputPlaceholder = content === LeftColumnContent.Contacts
     ? lang('SearchFriends')
     : lang('Search');
-
-  const versionString = IS_BETA ? `${APP_VERSION} Beta (${APP_REVISION})` : (DEBUG ? APP_REVISION : APP_VERSION);
-
-  const isFullscreen = useFullscreenStatus();
-
-  // Disable dropdown menu RTL animation for resize
-  const {
-    shouldDisableDropdownMenuTransitionRef,
-    handleDropdownMenuTransitionEnd,
-  } = useLeftHeaderButtonRtlForumTransition(shouldHideSearch);
 
   // eslint-disable-next-line no-null/no-null
   const headerRef = useRef<HTMLDivElement>(null);
@@ -250,82 +198,57 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   }, [globalSearchChatId, selectedSearchDate]);
 
   return (
-    <div className="LeftMainHeader">
-      <div id="LeftMainHeader" className="left-header" ref={headerRef}>
-        {oldLang.isRtl && <div className="DropdownMenuFiller" />}
-        <DropdownMenu
-          trigger={MainButton}
-          footer={`${APP_NAME} ${versionString}`}
-          className={buildClassName(
-            'main-menu',
-            oldLang.isRtl && 'rtl',
-            shouldHideSearch && oldLang.isRtl && 'right-aligned',
-            shouldDisableDropdownMenuTransitionRef.current && oldLang.isRtl && 'disable-transition',
-          )}
-          forceOpen={isBotMenuOpen}
-          positionX={shouldHideSearch && oldLang.isRtl ? 'right' : 'left'}
-          transformOriginX={IS_ELECTRON && IS_MAC_OS && !isFullscreen ? 90 : undefined}
-          onTransitionEnd={oldLang.isRtl ? handleDropdownMenuTransitionEnd : undefined}
-        >
-          <LeftSideMenuItems
-            onSelectArchived={onSelectArchived}
-            onSelectContacts={onSelectContacts}
-            onSelectSettings={onSelectSettings}
-            onBotMenuOpened={markBotMenuOpen}
-            onBotMenuClosed={unmarkBotMenuOpen}
-          />
-        </DropdownMenu>
-        <SearchInput
-          inputId="telegram-search-input"
-          resultsItemSelector=".LeftSearch .ListItem-button"
-          className={buildClassName(
-            (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
-            shouldHideSearch && 'SearchInput--hidden',
-          )}
-          value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
-          focused={isSearchFocused}
-          isLoading={isLoading || connectionStatusPosition === 'minimized'}
-          spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
-          spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
-          placeholder={searchInputPlaceholder}
-          autoComplete="off"
-          canClose={Boolean(globalSearchChatId || searchDate)}
-          onChange={onSearchQuery}
-          onReset={onReset}
-          onFocus={handleSearchFocus}
-          onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
-        >
-          {searchContent}
-          <StoryToggler
-            canShow={withStoryToggler}
-          />
-        </SearchInput>
-        {isCurrentUserPremium && <StatusButton />}
-        {hasPasscode && (
-          <Button
-            round
-            ripple={!isMobile}
-            size="smaller"
-            color="translucent"
-            ariaLabel={`${oldLang('ShortcutsController.Others.LockByPasscode')} (Ctrl+Shift+L)`}
-            onClick={handleLockScreen}
-            className={buildClassName(!isCurrentUserPremium && 'extra-spacing')}
-          >
-            <Icon name="lock" />
-          </Button>
+    <div id="LeftMainHeader" className="left-header" ref={headerRef}>
+      <SearchInput
+        inputId="telegram-search-input"
+        resultsItemSelector=".LeftSearch .ListItem-button"
+        className={buildClassName(
+          (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
+          shouldHideSearch && 'SearchInput--hidden',
         )}
-        <ShowTransition
-          isOpen={connectionStatusPosition === 'overlay'}
-          isCustom
-          className="connection-state-wrapper"
+        value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
+        focused={isSearchFocused}
+        isLoading={isLoading || connectionStatusPosition === 'minimized'}
+        spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
+        spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
+        placeholder={searchInputPlaceholder}
+        autoComplete="off"
+        canClose={isSearchFocused}
+        onChange={onSearchQuery}
+        onReset={onReset}
+        onFocus={handleSearchFocus}
+        onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
+      >
+        {searchContent}
+        <StoryToggler
+          canShow={withStoryToggler}
+        />
+      </SearchInput>
+      {isCurrentUserPremium && <StatusButton />}
+      {hasPasscode && (
+        <Button
+          round
+          ripple={!isMobile}
+          size="smaller"
+          color="translucent"
+          ariaLabel={`${oldLang('ShortcutsController.Others.LockByPasscode')} (Ctrl+Shift+L)`}
+          onClick={handleLockScreen}
+          className={buildClassName(!isCurrentUserPremium && 'extra-spacing')}
         >
-          <ConnectionStatusOverlay
-            connectionStatus={connectionStatus}
-            connectionStatusText={connectionStatusText!}
-            onClick={toggleConnectionStatus}
-          />
-        </ShowTransition>
-      </div>
+          <Icon name="lock" />
+        </Button>
+      )}
+      <ShowTransition
+        isOpen={connectionStatusPosition === 'overlay'}
+        isCustom
+        className="connection-state-wrapper"
+      >
+        <ConnectionStatusOverlay
+          connectionStatus={connectionStatus}
+          connectionStatusText={connectionStatusText!}
+          onClick={toggleConnectionStatus}
+        />
+      </ShowTransition>
     </div>
   );
 };

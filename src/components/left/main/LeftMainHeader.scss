@@ -2,6 +2,8 @@
 
 #LeftMainHeader {
   position: relative;
+  flex-shrink: 0;
+  padding: 1rem;
 
   .DropdownMenuFiller {
     width: 2.5rem;
