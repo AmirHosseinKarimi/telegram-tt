@@ -11,7 +11,7 @@ import type { LeftColumnContent, SettingsScreens } from '../../../types';
 import type { MenuItemContextAction } from '../../ui/ListItem';
 import type { TabWithProperties } from '../../ui/TabList';
 
-import { ALL_FOLDER_ID } from '../../../config';
+import { ALL_FOLDER_ID, BASE_URL, IS_PACKAGED_ELECTRON } from '../../../config';
 import { selectCanShareFolder, selectTabState } from '../../../global/selectors';
 import { selectCurrentLimit } from '../../../global/selectors/limits';
 import buildClassName from '../../../util/buildClassName';
@@ -25,13 +25,12 @@ import useDerivedState from '../../../hooks/useDerivedState';
 import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLang from '../../../hooks/useLang';
-import useLastCallback from '../../../hooks/useLastCallback';
 import useShowTransition from '../../../hooks/useShowTransition';
 
 import StoryRibbon from '../../story/StoryRibbon';
-import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
+import { handleEmojiLoad, LOADED_EMOJIS } from '../../../util/emoji/emoji';
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -144,7 +143,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     }
 
     return displayedFolders.map((folder, i) => {
-      const { id, title } = folder;
+      const { id, title, emoticon } = folder;
       const isBlocked = id !== ALL_FOLDER_ID && i > maxFolders - 1;
       const canShareFolder = selectCanShareFolder(getGlobal(), id);
       const contextActions: MenuItemContextAction[] = [];
@@ -196,6 +195,31 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         });
       }
 
+      let folderIcon;
+      if (id === ALL_FOLDER_ID) {
+        folderIcon = <i className="tab-icon icon icon-chats-badge" />;
+      } else {
+        const folderIconSrc = `${
+          IS_PACKAGED_ELECTRON ? BASE_URL : "."
+        }/img-apple-64/${(emoticon || "❓").codePointAt(0)?.toString(16)}.png`;
+        const isLoaded = LOADED_EMOJIS.has(folderIconSrc);
+
+        folderIcon = (
+          <img
+            src={folderIconSrc}
+            className={buildClassName(
+              "tab-emoticon",
+              !isLoaded ? "opacity-transition shown" : undefined
+            )}
+            alt={emoticon}
+            loading="lazy"
+            data-path={folderIconSrc}
+            onLoad={!isLoaded ? handleEmojiLoad : undefined}
+            draggable={false}
+          />
+        );
+      }
+
       return {
         id,
         title: renderTextWithEntities({
@@ -204,6 +228,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
           noCustomEmojiPlayback: folder.noTitleAnimations,
         }),
         badgeCount: folderCountersById[id]?.chatsCount,
+        emoticon: folderIcon,
         isBadgeActive: Boolean(folderCountersById[id]?.notificationsCount),
         isBlocked,
         contextActions: contextActions?.length ? contextActions : undefined,
@@ -213,10 +238,6 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     displayedFolders, maxFolders, folderCountersById, lang, chatFoldersById, maxChatLists, folderInvitesById,
     maxFolderInvites,
   ]);
-
-  const handleSwitchTab = useLastCallback((index: number) => {
-    setActiveChatFolder({ activeChatFolder: index }, { forceOnHeavyAnimation: true });
-  });
 
   // Prevent `activeTab` pointing at non-existing folder after update
   useEffect(() => {
@@ -292,15 +313,6 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     };
   }, [currentUserId, folderTabs, openChat, setActiveChatFolder]);
 
-  const {
-    ref: placeholderRef,
-    shouldRender: shouldRenderPlaceholder,
-  } = useShowTransition({
-    isOpen: !orderedFolderIds,
-    noMountTransition: true,
-    withShouldRender: true,
-  });
-
   function renderCurrentTab(isActive: boolean) {
     const activeFolder = Object.values(chatFoldersById)
       .find(({ id }) => id === folderTabs![activeChatFolder].id);
@@ -330,27 +342,25 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       className={buildClassName(
         'ChatFolders',
         shouldRenderFolders && shouldHideFolderTabs && 'ChatFolders--tabs-hidden',
-        shouldRenderStoryRibbon && 'with-story-ribbon',
       )}
     >
-      {shouldRenderStoryRibbon && <StoryRibbon isClosing={isStoryRibbonClosing} />}
-      {shouldRenderFolders ? (
-        <TabList
-          contextRootElementSelector="#LeftColumn"
-          tabs={folderTabs}
-          activeTab={activeChatFolder}
-          onSwitchTab={handleSwitchTab}
-        />
-      ) : shouldRenderPlaceholder ? (
-        <div ref={placeholderRef} className="tabs-placeholder" />
-      ) : undefined}
       <Transition
         ref={transitionRef}
         name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
         activeKey={activeChatFolder}
         renderCount={shouldRenderFolders ? folderTabs.length : undefined}
       >
-        {renderCurrentTab}
+        {(isActive) => {
+          return (
+            <div>
+              {shouldRenderStoryRibbon && (
+                <StoryRibbon isClosing={isStoryRibbonClosing} />
+              )}
+
+              {renderCurrentTab(isActive)}
+            </div>
+          );
+        }}
       </Transition>
     </div>
   );
