@@ -192,7 +192,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     lockScreen();
   });
 
-  const isSearchFocused = (!isDesktop && !isMessageListOpen) && (
+  const isSearchFocused = !isMessageListOpen && (
     Boolean(globalSearchChatId)
     || content === LeftColumnContent.GlobalSearch
     || content === LeftColumnContent.Contacts
