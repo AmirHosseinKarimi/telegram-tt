@@ -162,6 +162,10 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
     dispatch({ type: 'setTitle', payload: currentTarget.value.trim() });
   }, [dispatch]);
 
+  const setEmoticon = useCallback((emoji: string) => {
+    dispatch({ type: 'setEmoticon', payload: emoji });
+  }, [dispatch]);
+
   const handleSubmit = useCallback(() => {
     dispatch({ type: 'setIsLoading', payload: true });
 
@@ -328,9 +332,7 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
                 console.debug(sticker);
               }}
               onRemoveSymbol={() => {}}
-              onEmojiSelect={(sticker) => {
-                console.debug(sticker);
-              }}
+              onEmojiSelect={setEmoticon}
               isAttachmentModal
               isFolderEdit
               canSendPlainText
