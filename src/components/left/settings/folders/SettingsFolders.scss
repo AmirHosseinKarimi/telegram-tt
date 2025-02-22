@@ -11,6 +11,20 @@
   margin-left: 0.25rem;
 }
 
+.folder-edit-input-wrapper {
+  display: flex;
+  position: relative;
+  width: 100%;
+
+  .symbol-menu-button {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    height: 2rem;
+    
+  }
+}
+
 .settings-folders-list-item {
   .ListItem-main-icon {
     margin-inline-end: 1.875rem !important;

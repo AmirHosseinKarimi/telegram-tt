@@ -32,6 +32,10 @@ import InputText from '../../../ui/InputText';
 import ListItem from '../../../ui/ListItem';
 import Spinner from '../../../ui/Spinner';
 
+import useFlag from '../../../../hooks/useFlag';
+import SymbolMenuButton from '../../../middle/composer/SymbolMenuButton';
+import useAppLayout from '../../../../hooks/useAppLayout';
+
 type OwnProps = {
   state: FoldersState;
   dispatch: FolderEditDispatch;
@@ -47,6 +51,7 @@ type OwnProps = {
 };
 
 type StateProps = {
+  currentUserId: string;
   loadedActiveChatIds?: string[];
   loadedArchivedChatIds?: string[];
   invites?: ApiChatlistExportedInvite[];
@@ -74,6 +79,7 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
   onReset,
   isRemoved,
   onBack,
+  currentUserId,
   loadedActiveChatIds,
   isOnlyInvites,
   loadedArchivedChatIds,
@@ -279,6 +285,9 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
     );
   }
 
+  const { isMobile } = useAppLayout();
+  const [isSymbolMenuOpen, openSymbolMenu, closeSymbolMenu] = useFlag();
+
   return (
     <div className="settings-fab-wrapper">
       <div className="settings-content no-border custom-scroll">
@@ -296,13 +305,39 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
             </p>
           )}
 
-          <InputText
-            className="mb-0"
-            label={lang('FilterNameHint')}
-            value={state.folder.title.text}
-            onChange={handleChange}
-            error={state.error && state.error === ERROR_NO_TITLE ? ERROR_NO_TITLE : undefined}
-          />
+          <div className="folder-edit-input-wrapper">
+            <InputText
+              className="mb-0 .inputCssSelector"
+              label={lang("FilterNameHint")}
+              value={state.folder.title.text}
+              onChange={handleChange}
+              error={
+                state.error && state.error === ERROR_NO_TITLE
+                  ? ERROR_NO_TITLE
+                  : undefined
+              }
+            />
+
+            <SymbolMenuButton
+              chatId={currentUserId}
+              isMobile={isMobile}
+              isSymbolMenuOpen={isSymbolMenuOpen}
+              openSymbolMenu={openSymbolMenu}
+              closeSymbolMenu={closeSymbolMenu}
+              onCustomEmojiSelect={(sticker) => {
+                console.debug(sticker);
+              }}
+              onRemoveSymbol={() => {}}
+              onEmojiSelect={(sticker) => {
+                console.debug(sticker);
+              }}
+              isAttachmentModal
+              isFolderEdit
+              canSendPlainText
+              className="folder-edit-modal-symbol-menu with-menu-transitions"
+              idPrefix="attachment"
+            />
+          </div>
         </div>
 
         {!isOnlyInvites && (
@@ -397,10 +432,12 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global, { state }): StateProps => {
     const { listIds } = global.chats;
+    const currentUserId = global.currentUserId || '';
     const { byId, invites } = global.chatFolders;
     const chatListCount = Object.values(byId).reduce((acc, el) => acc + (el.isChatList ? 1 : 0), 0);
 
     return {
+      currentUserId,
       loadedActiveChatIds: listIds.active,
       loadedArchivedChatIds: listIds.archived,
       invites: state.folderId ? (invites[state.folderId] || MEMO_EMPTY_ARRAY) : undefined,

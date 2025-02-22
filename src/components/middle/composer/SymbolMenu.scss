@@ -1,9 +1,14 @@
 @use "../../../styles/mixins";
 
 .SymbolMenu {
-  &.attachment-modal-symbol-menu {
+  &.attachment-modal-symbol-menu,
+  &.folder-edit-modal-symbol-menu {
     position: absolute;
     z-index: var(--z-symbol-menu-modal);
+  }
+  
+  &.folder-edit-modal-symbol-menu .bubble{
+    --offset-y: 0;
   }
 
   &.mobile-menu {
@@ -47,7 +52,9 @@
     max-height: calc(100vh - var(--symbol-menu-footer-height));
 
     @media (max-width: 600px) {
-      max-height: calc(100vh - var(--symbol-menu-footer-height) - env(safe-area-inset-bottom));
+      max-height: calc(
+        100vh - var(--symbol-menu-footer-height) - env(safe-area-inset-bottom)
+      );
     }
   }
 
@@ -106,9 +113,12 @@
       height: 4.5rem;
     }
 
-    &.attachment-modal-symbol-menu > .backdrop {
-      bottom: 0;
-      top: auto;
+    &.attachment-modal-symbol-menu,
+    &.folder-edit-modal-symbol-menu {
+      & > .backdrop {
+        bottom: 0;
+        top: auto;
+      }
     }
   }
 
@@ -148,7 +158,8 @@
     transition-duration: 200ms !important;
   }
 
-  .StickerButton.custom-emoji, .sticker-set-cover {
+  .StickerButton.custom-emoji,
+  .sticker-set-cover {
     color: var(--color-text);
   }
 
