@@ -15,6 +15,7 @@ type OwnProps = {
   onRemoveSymbol: () => void;
   onSearchOpen: (type: 'stickers' | 'gifs') => void;
   isAttachmentModal?: boolean;
+  isFolderEdit?: boolean;
   canSendPlainText?: boolean;
   canSearch?: boolean;
 };
@@ -42,7 +43,7 @@ const SYMBOL_MENU_TAB_ICONS = {
 
 const SymbolMenuFooter: FC<OwnProps> = ({
   activeTab, onSwitchTab, onRemoveSymbol, onSearchOpen, isAttachmentModal,
-  canSendPlainText, canSearch,
+  canSendPlainText, isFolderEdit, canSearch,
 }) => {
   const lang = useOldLang();
 
@@ -90,7 +91,10 @@ const SymbolMenuFooter: FC<OwnProps> = ({
       {!isAttachmentModal && renderTabButton(SymbolMenuTabs.Stickers)}
       {!isAttachmentModal && renderTabButton(SymbolMenuTabs.GIFs)}
 
-      {(activeTab === SymbolMenuTabs.Emoji || activeTab === SymbolMenuTabs.CustomEmoji) && (
+      {!isFolderEdit && (
+        activeTab === SymbolMenuTabs.Emoji ||
+        activeTab === SymbolMenuTabs.CustomEmoji
+      ) && (
         <Button
           className="symbol-delete-button"
           onClick={onRemoveSymbol}

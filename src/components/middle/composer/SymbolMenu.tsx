@@ -62,6 +62,7 @@ export type OwnProps = {
   addRecentCustomEmoji: GlobalActions['addRecentCustomEmoji'];
   className?: string;
   isAttachmentModal?: boolean;
+  isFolderEdit?: boolean;
   canSendPlainText?: boolean;
 }
 & MenuPositionOptions;
@@ -83,6 +84,7 @@ const SymbolMenu: FC<OwnProps & StateProps> = ({
   isLeftColumnShown,
   idPrefix,
   isAttachmentModal,
+  isFolderEdit,
   canSendPlainText,
   className,
   isBackgroundTranslucent,
@@ -281,6 +283,7 @@ const SymbolMenu: FC<OwnProps & StateProps> = ({
         canSearch={isMessageComposer}
         onSearchOpen={handleSearch}
         isAttachmentModal={isAttachmentModal}
+        isFolderEdit={isFolderEdit}
         canSendPlainText={canSendPlainText}
       />
     </>

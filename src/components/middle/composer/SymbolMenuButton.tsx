@@ -47,6 +47,7 @@ type OwnProps = {
   closeSendAsMenu?: VoidFunction;
   isSymbolMenuForced?: boolean;
   isAttachmentModal?: boolean;
+  isFolderEdit?: boolean;
   canSendPlainText?: boolean;
   className?: string;
   inputCssSelector?: string;
@@ -63,6 +64,7 @@ const SymbolMenuButton: FC<OwnProps> = ({
   isSymbolMenuOpen,
   idPrefix,
   isAttachmentModal,
+  isFolderEdit,
   canSendPlainText,
   isSymbolMenuForced,
   className,
@@ -187,6 +189,7 @@ const SymbolMenuButton: FC<OwnProps> = ({
         addRecentEmoji={addRecentEmoji}
         addRecentCustomEmoji={addRecentCustomEmoji}
         isAttachmentModal={isAttachmentModal}
+        isFolderEdit={isFolderEdit}
         canSendPlainText={canSendPlainText}
         className={buildClassName(className, forceDarkTheme && 'component-theme-dark')}
         anchor={isAttachmentModal ? contextMenuAnchor : undefined}
